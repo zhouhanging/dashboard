@@ -1,0 +1,63 @@
+version: '3'
+
+services:
+  mysql:
+    image: mysql:8.0.32
+    container_name: mysql-web-editor
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: '@Dollar99999'
+      MYSQL_DATABASE: web_editor
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - web-editor-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend-web-editor
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: '@Dollar99999'
+      DB_NAME: web_editor
+      JWT_SECRET: your_jwt_secret_key
+      JWT_EXPIRES_IN: 24h
+      PORT: 8080
+    volumes:
+      - ./backend:/app
+      - ./backend/uploads:/app/uploads
+    networks:
+      - web-editor-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend-web-editor
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+    networks:
+      - web-editor-network
+
+volumes:
+  mysql-data:
+
+networks:
+  web-editor-network:
+    driver: bridge
